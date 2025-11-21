@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backoffice Chatbot Bancaire</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        .sidebar-expanded { width: 16rem; }
+        .sidebar-collapsed { width: 4rem; }
+        .sidebar-text { transition: opacity 0.2s; }
+        .sidebar-collapsed .sidebar-text { opacity: 0; }
+        .card-hover { transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; }
+        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .pulse-animation { animation: pulse 2s infinite; }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b">
+        <div class="px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <button id="sidebar-toggle" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                    <h1 class="ml-4 text-xl font-semibold text-gray-900">Backoffice Chatbot</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="relative">
+                        <button class="flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            <img class="h-8 w-8 rounded-full" src="https://via.placeholder.com/32x32/667eea/ffffff?text=A" alt="Admin">
+                            <span class="ml-2 text-gray-700">Admin</span>
+                        </button>
+                    </div>
+                    <a href="/logout" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="flex">
+        <!-- Sidebar -->
+        <div id="sidebar" class="hidden md:block sidebar-expanded bg-gray-800 text-white transition-all duration-300 ease-in-out">
+            <div class="p-4">
+                <div class="space-y-2">
+                    <a href="/" class="flex items-center space-x-3 text-white bg-gray-700 rounded-lg p-3 transition-colors">
+                        <i class="fas fa-chart-line w-5"></i>
+                        <span class="sidebar-text">Dashboard</span>
+                    </a>
+                    <a href="/conversations" class="flex items-center space-x-3 text-gray-300 hover:bg-gray-700 rounded-lg p-3 transition-colors">
+                        <i class="fas fa-comments w-5"></i>
+                        <span class="sidebar-text">Conversations</span>
+                    </a>
+                    <a href="/analytics" class="flex items-center space-x-3 text-gray-300 hover:bg-gray-700 rounded-lg p-3 transition-colors">
+                        <i class="fas fa-chart-bar w-5"></i>
+                        <span class="sidebar-text">Analytics</span>
+                    </a>
+                    <a href="/configuration" class="flex items-center space-x-3 text-gray-300 hover:bg-gray-700 rounded-lg p-3 transition-colors">
+                        <i class="fas fa-cogs w-5"></i>
+                        <span class="sidebar-text">Configuration</span>
+                    </a>
+                    <a href="/banking" class="flex items-center space-x-3 text-gray-300 hover:bg-gray-700 rounded-lg p-3 transition-colors">
+                        <i class="fas fa-university w-5"></i>
+                        <span class="sidebar-text">Banking</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 p-6">
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-lg shadow card-hover">
+                    <div class="p-6">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-comments text-white text-sm"></i>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-600">Total Conversations</p>
+                                <p class="text-2xl font-semibold text-gray-900">{{ stats.total_conversations }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow card-hover">
+                    <div class="p-6">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-comment text-white text-sm"></i>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-600">Total Messages</p>
+                                <p class="text-2xl font-semibold text-gray-900">{{ stats.total_messages }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow card-hover">
+                    <div class="p-6">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-clock text-white text-sm"></i>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-600">Temps Réponse Moyen</p>
+                                <p class="text-2xl font-semibold text-gray-900">{{ stats.avg_response_time }}s</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow card-hover">
+                    <div class="p-6">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center pulse-animation">
+                                    <i class="fas fa-users text-white text-sm"></i>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-600">Utilisateurs Actifs</p>
+                                <p id="active-users" class="text-2xl font-semibold text-gray-900">{{ stats.total_accounts }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <!-- Messages par heure -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Messages par Heure (24h)</h3>
+                    <div class="relative" style="height: 300px;">
+                        <canvas id="hourlyChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Intents populaires -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Intents Populaires</h3>
+                    <div class="relative" style="height: 300px;">
+                        <canvas id="intentChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Conversations -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">Conversations Récentes</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Utilisateur</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Messages</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Démarré</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for conv in stats.recent_conversations %}
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ conv[1] }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ stats.conversation_message_counts.get(conv[0], 0) }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ conv[2] }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                        active
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <a href="/conversation/{{ conv[0] }}" class="text-indigo-600 hover:text-indigo-900">Voir</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Récupération des données réelles depuis le backend
+        const hourlyData = {{ stats.hourly_messages | tojson }};
+        const intentData = {
+            labels: [{% for intent in stats.top_intents %}'{{ intent[0] }}'{% if not loop.last %},{% endif %}{% endfor %}],
+            data: [{% for intent in stats.top_intents %}{{ intent[1] }}{% if not loop.last %},{% endif %}{% endfor %}]
+        };
+
+        // Sidebar Toggle
+        document.getElementById('sidebar-toggle').addEventListener('click', function() {
+            const sidebar = document.getElementById('sidebar');
+            if (window.innerWidth < 768) {
+                sidebar.classList.toggle('hidden');
+            } else {
+                sidebar.classList.toggle('sidebar-collapsed');
+                sidebar.classList.toggle('sidebar-expanded');
+            }
+        });
+
+        // Live stats update
+        async function updateStats() {
+            try {
+                const response = await fetch('/api/stats');
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const data = await response.json();
+                
+                // Mettre à jour les statistiques
+                if (data.active_users !== undefined) {
+                    document.getElementById('active-users').textContent = data.active_users;
+                }
+                
+                // Mettre à jour le graphique des messages par heure
+                if (data.hourly_messages && Array.isArray(data.hourly_messages)) {
+                    updateHourlyChart(data.hourly_messages);
+                }
+                
+            } catch (error) {
+                console.error('Erreur récupération stats:', error);
+            }
+        }
+
+        // Create Charts
+        let hourlyChart;
+        let intentChart;
+
+        function createHourlyChart() {
+            const ctx = document.getElementById('hourlyChart').getContext('2d');
+            
+            // Préparer les données pour le graphique
+            let chartData;
+            if (Array.isArray(hourlyData) && hourlyData.length > 0) {
+                // Si hourlyData est un tableau d'objets avec hour et count
+                if (typeof hourlyData[0] === 'object' && hourlyData[0].count !== undefined) {
+                    chartData = hourlyData.map(item => item.count || 0);
+                } else {
+                    // Si c'est un simple tableau de nombres
+                    chartData = hourlyData;
+                }
+            } else {
+                // Données par défaut si aucune donnée n'est disponible
+                chartData = Array(24).fill(0);
+            }
+
+            hourlyChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array.from({length: 24}, (_, i) => `${i.toString().padStart(2, '0')}:00`),
+                    datasets: [{
+                        label: 'Messages',
+                        data: chartData,
+                        borderColor: 'rgb(99, 102, 241)',
+                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: 'rgb(99, 102, 241)',
+                        pointBorderColor: 'white',
+                        pointBorderWidth: 2,
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0,0,0,0.1)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    elements: {
+                        line: {
+                            borderWidth: 3
+                        }
+                    }
+                }
+            });
+        }
+
+        function createIntentChart() {
+            const ctx = document.getElementById('intentChart').getContext('2d');
+            
+            // Vérifier si nous avons des données d'intents
+            if (!intentData.labels || intentData.labels.length === 0) {
+                // Afficher un message si aucune donnée n'est disponible
+                ctx.font = '16px Arial';
+                ctx.fillStyle = '#6b7280';
+                ctx.textAlign = 'center';
+                ctx.fillText('Aucune donnée d\'intent disponible', ctx.canvas.width / 2, ctx.canvas.height / 2);
+                return;
+            }
+
+            intentChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: intentData.labels,
+                    datasets: [{
+                        data: intentData.data,
+                        backgroundColor: [
+                            '#3B82F6',
+                            '#10B981', 
+                            '#F59E0B',
+                            '#EF4444',
+                            '#8B5CF6',
+                            '#EC4899',
+                            '#14B8A6',
+                            '#F97316'
+                        ],
+                        borderWidth: 3,
+                        borderColor: 'white',
+                        hoverBorderWidth: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true,
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        }
+                    },
+                    cutout: '60%',
+                    animation: {
+                        animateRotate: true,
+                        duration: 1000
+                    }
+                }
+            });
+        }
+
+        function updateHourlyChart(newData) {
+            if (hourlyChart && Array.isArray(newData)) {
+                // Traiter les nouvelles données
+                let chartData;
+                if (typeof newData[0] === 'object' && newData[0].count !== undefined) {
+                    chartData = newData.map(item => item.count || 0);
+                } else {
+                    chartData = newData;
+                }
+                
+                hourlyChart.data.datasets[0].data = chartData;
+                hourlyChart.update('none'); // Animation plus fluide
+            }
+        }
+
+        // Initialize dashboard
+        function initDashboard() {
+            createHourlyChart();
+            createIntentChart();
+        }
+
+        // Wait for DOM to be fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            initDashboard();
+            
+            // Update stats every 30 seconds
+            setInterval(updateStats, 30000);
+        });
+
+        // Handle window resize for sidebar
+        window.addEventListener('resize', function() {
+            const sidebar = document.getElementById('sidebar');
+            if (window.innerWidth >= 768) {
+                sidebar.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('sidebar-expanded');
+                sidebar.classList.remove('sidebar-collapsed');
+            }
+        });
+    </script>
+</body>
+</html>

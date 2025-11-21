@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuration Bot - Admin Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    <style>
+        .config-header {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 20px 20px;
+        }
+        
+        .stats-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-left: 4px solid #4f46e5;
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        
+        .stats-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #4f46e5;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stats-label {
+            color: #6b7280;
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+        
+        .config-form-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .config-table-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .form-control:focus {
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.25);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 10px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            border: none;
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+        }
+        
+        .btn-outline-info {
+            border-color: #06b6d4;
+            color: #06b6d4;
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+        }
+        
+        .config-table {
+            margin: 0;
+        }
+        
+        .config-table th {
+            background: #f8fafc;
+            color: #374151;
+            font-weight: 600;
+            padding: 1rem;
+            border: none;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+        
+        .config-table td {
+            padding: 1rem;
+            vertical-align: middle;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .config-table tbody tr:hover {
+            background-color: #f9fafb;
+            transition: background-color 0.3s ease;
+        }
+        
+        .config-name {
+            font-weight: 600;
+            color: #4f46e5;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .config-value {
+            background: #f3f4f6;
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            max-width: 300px;
+            word-break: break-all;
+        }
+        
+        .config-description {
+            color: #6b7280;
+            font-style: italic;
+        }
+        
+        .config-meta {
+            font-size: 0.8rem;
+            color: #9ca3af;
+        }
+        
+        .recent-configs {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .recent-config-item {
+            padding: 0.75rem;
+            border-bottom: 1px solid #e5e7eb;
+            transition: background-color 0.3s ease;
+        }
+        
+        .recent-config-item:hover {
+            background-color: #f9fafb;
+        }
+        
+        .recent-config-item:last-child {
+            border-bottom: none;
+        }
+        
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1050;
+        }
+        
+        .config-actions {
+            white-space: nowrap;
+        }
+        
+        .modal-content {
+            border-radius: 15px;
+            border: none;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+        }
+        
+        .modal-header {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            border-radius: 15px 15px 0 0;
+        }
+        
+        .search-box {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+        
+        .search-box input {
+            padding-left: 2.5rem;
+            border-radius: 10px;
+            border: 2px solid #e5e7eb;
+        }
+        
+        .search-box i {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+        }
+        
+        @media (max-width: 768px) {
+            .config-table {
+                font-size: 0.8rem;
+            }
+            
+            .config-value {
+                max-width: 150px;
+            }
+            
+            .stats-card {
+                margin-bottom: 1rem;
+            }
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <!-- Header -->
+    <div class="config-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h1 class="mb-0">
+                        <i class="fas fa-cogs me-3"></i>Configuration du Bot
+                    </h1>
+                    <p class="mb-0 mt-2 opacity-75">Gestion des paramètres et configurations</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <button class="btn btn-light me-2" onclick="exportConfig()">
+                        <i class="fas fa-download me-2"></i>Exporter
+                    </button>
+                    <button class="btn btn-outline-light" data-bs-toggle="modal" data-bs-target="#addConfigModal">
+                        <i class="fas fa-plus me-2"></i>Nouvelle Config
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <!-- Statistiques -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="stats-card">
+                    <div class="stats-number">{{ total_configs }}</div>
+                    <div class="stats-label">Configurations</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stats-card">
+                    <div class="stats-number">{{ recent_updates }}</div>
+                    <div class="stats-label">Mises à jour (7j)</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stats-card">
+                    <div class="stats-number" id="current-time"></div>
+                    <div class="stats-label">Dernière sync</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Table des configurations -->
+            <div class="col-lg-8">
+                <div class="config-table-card">
+                    <div class="p-3 border-bottom">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-list me-2"></i>Toutes les configurations
+                            </h5>
+                            <div class="search-box">
+                                <input type="text" class="form-control" id="searchConfig" placeholder="Rechercher...">
+                                <i class="fas fa-search"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table config-table mb-0" id="configTable">
+                            <thead>
+                                <tr>
+                                    <th>Nom</th>
+                                    <th>Valeur</th>
+                                    <th>Description</th>
+                                    <th>Mise à jour</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for config in configs %}
+                                <tr>
+                                    <td>
+                                        <span class="config-name">{{ config[1] }}</span>
+                                    </td>
+                                    <td>
+                                        <div class="config-value" title="{{ config[2] }}">
+                                            {{ config[2][:50] }}{% if config[2]|length > 50 %}...{% endif %}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="config-description">
+                                            {{ config[3] or 'Aucune description' }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="config-meta">
+                                            <div>{{ config[4][:19] if config[4] else 'N/A' }}</div>
+                                            <small>Par: {{ config[5] or 'Système' }}</small>
+                                        </div>
+                                    </td>
+                                    <td class="config-actions">
+                                        <button class="btn btn-outline-info btn-sm me-1" 
+                                                onclick="editConfig({{ config[0] }}, '{{ config[1] }}', '{{ config[2] }}', '{{ config[3] or '' }}')">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <form style="display: inline-block;" method="POST" action="{{ url_for('delete_config', config_id=config[0]) }}" 
+                                              onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette configuration ?')">
+                                            <button type="submit" class="btn btn-danger btn-sm">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configurations récentes -->
+            <div class="col-lg-4">
+                <div class="recent-configs">
+                    <h5 class="mb-3">
+                        <i class="fas fa-history me-2"></i>Dernières modifications
+                    </h5>
+                    
+                    {% for config in recent_configs %}
+                    <div class="recent-config-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="config-name small">{{ config[0] }}</div>
+                                <div class="config-description small">{{ config[1][:30] }}{% if config[1]|length > 30 %}...{% endif %}</div>
+                            </div>
+                            <div class="config-meta text-end">
+                                <div>{{ config[2][:10] if config[2] else '' }}</div>
+                                <small>{{ config[3] or 'Système' }}</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Aide rapide -->
+                <div class="recent-configs mt-3">
+                    <h6 class="mb-3">
+                        <i class="fas fa-info-circle me-2"></i>Aide rapide
+                    </h6>
+                    <div class="small text-muted">
+                        <p><strong>Types de valeurs :</strong></p>
+                        <ul class="mb-2">
+                            <li>Texte : <code>"Hello World"</code></li>
+                            <li>Nombre : <code>42</code></li>
+                            <li>Booléen : <code>true</code> / <code>false</code></li>
+                            <li>JSON : <code>{"key": "value"}</code></li>
+                        </ul>
+                        <p><strong>Configurations communes :</strong></p>
+                        <ul class="mb-0">
+                            <li><code>bot_name</code> - Nom du bot</li>
+                            <li><code>max_tokens</code> - Limite de tokens</li>
+                            <li><code>temperature</code> - Créativité (0-1)</li>
+                            <li><code>language</code> - Langue par défaut</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal d'ajout/édition -->
+    <div class="modal fade" id="addConfigModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-cog me-2"></i><span id="modalTitle">Nouvelle Configuration</span>
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="POST" action="{{ url_for('update_config') }}" id="configForm">
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="config_name" class="form-label">
+                                        <i class="fas fa-tag me-2"></i>Nom de la configuration *
+                                    </label>
+                                    <input type="text" class="form-control" id="config_name" name="config_name" required
+                                           placeholder="ex: bot_name">
+                                    <div class="form-text">Nom unique pour identifier la configuration</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="config_value" class="form-label">
+                                        <i class="fas fa-code me-2"></i>Valeur *
+                                    </label>
+                                    <textarea class="form-control" id="config_value" name="config_value" rows="3" required
+                                              placeholder="Valeur de la configuration"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="description" class="form-label">
+                                <i class="fas fa-comment me-2"></i>Description
+                            </label>
+                            <textarea class="form-control" id="description" name="description" rows="2"
+                                      placeholder="Description de la configuration (optionnel)"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-2"></i>Annuler
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i><span id="submitText">Sauvegarder</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast notifications -->
+    <div class="toast-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="toast show" role="alert">
+                    <div class="toast-header">
+                        <i class="fas fa-{{ 'check-circle text-success' if category == 'success' else 'exclamation-circle text-danger' }} me-2"></i>
+                        <strong class="me-auto">{{ 'Succès' if category == 'success' else 'Erreur' }}</strong>
+                        <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+                    </div>
+                    <div class="toast-body">{{ message }}</div>
+                </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Mettre à jour l'heure actuelle
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('current-time').textContent = now.toLocaleTimeString('fr-FR');
+        }
+        updateTime();
+        setInterval(updateTime, 1000);
+
+        // Recherche dans le tableau
+        document.getElementById('searchConfig').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('#configTable tbody tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        });
+
+        // Éditer une configuration
+        function editConfig(id, name, value, description) {
+            document.getElementById('modalTitle').textContent = 'Modifier Configuration';
+            document.getElementById('submitText').textContent = 'Mettre à jour';
+            document.getElementById('config_name').value = name;
+            document.getElementById('config_value').value = value;
+            document.getElementById('description').value = description;
+            
+            // Désactiver le champ nom en mode édition
+            document.getElementById('config_name').readOnly = true;
+            
+            new bootstrap.Modal(document.getElementById('addConfigModal')).show();
+        }
+
+        // Réinitialiser le formulaire
+        document.getElementById('addConfigModal').addEventListener('hidden.bs.modal', function() {
+            document.getElementById('modalTitle').textContent = 'Nouvelle Configuration';
+            document.getElementById('submitText').textContent = 'Sauvegarder';
+            document.getElementById('configForm').reset();
+            document.getElementById('config_name').readOnly = false;
+        });
+
+        // Exporter les configurations
+        function exportConfig() {
+            window.location.href = "{{ url_for('export_config') }}";
+        }
+
+        // Auto-hide toasts
+        document.querySelectorAll('.toast').forEach(toast => {
+            setTimeout(() => {
+                const bsToast = new bootstrap.Toast(toast);
+                bsToast.hide();
+            }, 5000);
+        });
+
+        // Validation du formulaire
+        document.getElementById('configForm').addEventListener('submit', function(e) {
+            const configName = document.getElementById('config_name').value.trim();
+            const configValue = document.getElementById('config_value').value.trim();
+            
+            if (!configName || !configValue) {
+                e.preventDefault();
+                alert('Le nom et la valeur sont obligatoires');
+                return false;
+            }
+            
+            // Validation du nom de configuration (pas d'espaces, caractères spéciaux limités)
+            if (!/^[a-zA-Z0-9_.-]+$/.test(configName)) {
+                e.preventDefault();
+                alert('Le nom de configuration ne peut contenir que des lettres, chiffres, tirets et underscores');
+                return false;
+            }
+        });
+    </script>
+</body>
+</html>

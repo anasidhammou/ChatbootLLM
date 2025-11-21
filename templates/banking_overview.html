@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue d'ensemble bancaire - S2M admin</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Réutilisation complète du style existant */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            padding: 30px;
+            position: relative;
+        }
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #e74c3c, #f39c12, #2ecc71, #3498db);
+        }
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+        }
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        .content { padding: 30px; }
+        .stats-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #fff, #f8f9fa);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        .stat-card:hover { transform: translateY(-5px); }
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .table-container { margin-top: 30px; }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .table thead {
+            background: linear-gradient(135deg, #34495e, #2c3e50);
+            color: white;
+        }
+        .table th, .table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+            font-size: 0.9rem;
+        }
+        .table tbody tr:hover {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            transform: scale(1.01);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .status-credit { background: linear-gradient(135deg, #2ecc71, #27ae60); color: white; }
+        .status-debit { background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; }
+        .refresh-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            border: none;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+        .refresh-btn:hover { transform: scale(1.1) rotate(180deg); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-university"></i> Vue d'ensemble bancaire</h1>
+            <div class="nav-buttons">
+                <a href="{{ url_for('dashboard') }}" class="btn btn-secondary"><i class="fas fa-home"></i> Tableau de bord</a>
+                <a href="{{ url_for('analytics') }}" class="btn btn-secondary"><i class="fas fa-chart-bar"></i> Analytics</a>
+                <a href="{{ url_for('banking_overview') }}" class="btn btn-primary"><i class="fas fa-university"></i> Banking</a>
+                <a href="{{ url_for('configuration') }}" class="btn btn-secondary"><i class="fas fa-cog"></i> Configuration</a>
+                <a href="{{ url_for('logout') }}" class="btn btn-secondary"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- Statistiques globales -->
+            <div class="stats-summary">
+                {% for stat in account_stats %}
+                <div class="stat-card">
+                    <div class="stat-number">{{ stat[2] | round(2) }} {{ stat[0] }}</div>
+                    <div class="stat-label">{{ stat[1] }} comptes</div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Transactions récentes -->
+            <div class="table-container">
+                <h2><i class="fas fa-exchange-alt"></i> Transactions récentes</h2>
+                {% if recent_transactions %}
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Utilisateur</th>
+                            <th>Depuis</th>
+                            <th>Vers</th>
+                            <th>Montant</th>
+                            <th>Type</th>
+                            <th>Date</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in recent_transactions %}
+                        <tr>
+                            <td>#{{ t[0] }}</td>
+                            <td>{{ t[1] }}</td>
+                            <td>{{ t[8] if t[8] else t[2] }}</td>
+                            <td>{{ t[9] if t[9] else t[3] }}</td>
+                            <td><strong>{{ t[4] | float | round(2) }}</strong></td>
+                            <td>
+                                <span class="status-badge status-{{ 'credit' if t[5] == 'credit' else 'debit' }}">
+                                    {{ t[5] }}
+                                </span>
+                            </td>
+                            <td>{{ t[6] | round(2) }}</td>
+                            <td>{{ t[7] if t[7] else '-' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-exchange-alt"></i>
+                    <h3>Aucune transaction récente</h3>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Activité journalière -->
+            <div class="table-container">
+                <h2><i class="fas fa-chart-line"></i> Activité des 30 derniers jours</h2>
+                {% if daily_activity %}
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Nombre de transactions</th>
+                            <th>Volume total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for d in daily_activity %}
+                        <tr>
+                            <td>{{ d[0] }}</td>
+                            <td>{{ d[1] }}</td>
+                            <td>{{ d[2] | round(2) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-chart-line"></i>
+                    <h3>Aucune activité récente</h3>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Bouton de rafraîchissement -->
+    <button class="refresh-btn" onclick="location.reload()">
+        <i class="fas fa-sync-alt"></i>
+    </button>
+</body>
+</html>

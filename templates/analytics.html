@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics - Chatbot Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        .analytics-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .metric-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-left: 4px solid #667eea;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+        
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+        
+        .metric-label {
+            color: #6c757d;
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+        
+        .chart-container {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            margin-bottom: 2rem;
+        }
+        
+        .chart-title {
+            color: #495057;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .intent-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .intent-item:last-child {
+            border-bottom: none;
+        }
+        
+        .intent-name {
+            font-weight: 500;
+            color: #495057;
+        }
+        
+        .intent-stats {
+            text-align: right;
+        }
+        
+        .intent-count {
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .intent-confidence {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+        
+        .user-item {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            border-left: 4px solid #28a745;
+        }
+        
+        .user-id {
+            font-weight: bold;
+            color: #495057;
+        }
+        
+        .user-stats {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        
+        .confidence-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .confidence-high {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .confidence-medium {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .confidence-low {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .page-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 20px 20px;
+        }
+        
+        .nav-tabs .nav-link {
+            border: none;
+            color: #6c757d;
+            font-weight: 500;
+        }
+        
+        .nav-tabs .nav-link.active {
+            background: #667eea;
+            color: white;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="page-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h1 class="mb-0">
+                        <i class="fas fa-chart-line me-3"></i>Analytics Dashboard
+                    </h1>
+                    <p class="mb-0 mt-2 opacity-75">Analyse détaillée des performances du chatbot</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <div class="d-flex justify-content-md-end align-items-center">
+                        <i class="fas fa-calendar-alt me-2"></i>
+                        <span id="current-date"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <!-- Métriques principales -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value">{{ total_conversations }}</div>
+                    <div class="metric-label">Total Conversations</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value">{{ total_messages }}</div>
+                    <div class="metric-label">Total Messages</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value">{{ avg_messages_per_conv }}</div>
+                    <div class="metric-label">Messages/Conversation</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value">
+                        {{ "%.1f"|format((confidence_metrics.high_confidence / confidence_metrics.total_with_confidence * 100) if confidence_metrics.total_with_confidence > 0 else 0) }}%
+                    </div>
+                    <div class="metric-label">Confiance Élevée</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Onglets pour organiser les analytics -->
+        <ul class="nav nav-tabs mb-4" id="analyticsTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button">
+                    <i class="fas fa-tachometer-alt me-2"></i>Vue d'ensemble
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="intents-tab" data-bs-toggle="tab" data-bs-target="#intents" type="button">
+                    <i class="fas fa-bullseye me-2"></i>Intentions
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button">
+                    <i class="fas fa-users me-2"></i>Utilisateurs
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="performance-tab" data-bs-toggle="tab" data-bs-target="#performance" type="button">
+                    <i class="fas fa-clock me-2"></i>Performance
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="analyticsTabContent">
+            <!-- Onglet Vue d'ensemble -->
+            <div class="tab-pane fade show active" id="overview" role="tabpanel">
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="chart-container">
+                            <h5 class="chart-title"><i class="fas fa-calendar-week me-2"></i>Messages des 7 derniers jours</h5>
+                            <canvas id="dailyMessagesChart" height="100"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="chart-container">
+                            <h5 class="chart-title"><i class="fas fa-calendar-day me-2"></i>Conversations par jour</h5>
+                            <canvas id="weeklyConversationsChart" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Onglet Intentions -->
+            <div class="tab-pane fade" id="intents" role="tabpanel">
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="chart-container">
+                            <h5 class="chart-title"><i class="fas fa-bullseye me-2"></i>Top 10 des intentions détectées</h5>
+                            <canvas id="intentsChart" height="100"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="chart-container">
+                            <h5 class="chart-title"><i class="fas fa-list-alt me-2"></i>Détail des intentions</h5>
+                            <div style="max-height: 400px; overflow-y: auto;">
+                                {% for intent in intent_analysis %}
+                                <div class="intent-item">
+                                    <div class="intent-name">{{ intent[0] }}</div>
+                                    <div class="intent-stats">
+                                        <div class="intent-count">{{ intent[1] }} messages</div>
+                                        <div class="intent-confidence">Confiance: {{ "%.2f"|format(intent[2]) }}</div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Métriques de confiance -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="chart-container">
+                            <h5 class="chart-title"><i class="fas fa-chart-pie me-2"></i>Répartition des scores de confiance (7 derniers jours)</h5>
+                            <div class="row text-center">
+                                <div class="col-md-3">
+                                    <div class="confidence-badge confidence-high mb-2 d-inline-block">
+                                        Élevée (≥0.8)
+                                    </div>
+                                    <div class="h3">{{ confidence_metrics.high_confidence }}</div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="confidence-badge confidence-medium mb-2 d-inline-block">
+                                        Moyenne (0.5-0.79)
+                                    </div>
+                                    <div class="h3">{{ confidence_metrics.medium_confidence }}</div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="confidence-badge confidence-low mb-2 d-inline-block">
+                                        Faible (<0.5)
+                                    </div>
+                                    <div class="h3">{{ confidence_metrics.low_confidence }}</div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="text-muted mb-2">Total</div>
+                                    <div class="h3">{{ confidence_metrics.total_with_confidence }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Onglet Utilisateurs -->
+            <div class="tab-pane fade" id="users" role="tabpanel">
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="chart-container">
+                            <h5 class="chart-title"><i class="fas fa-users me-2"></i>Top 10 des utilisateurs les plus actifs</h5>
+                            <canvas id="topUsersChart" height="100"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="chart-container">
+                            <h5 class="chart-title"><i class="fas fa-list me-2"></i>Détail des utilisateurs</h5>
+                            <div style="max-height: 400px; overflow-y: auto;">
+                                {% for user in top_users %}
+                                <div class="user-item">
+                                    <div class="user-id">{{ user[0] }}</div>
+                                    <div class="user-stats">
+                                        {{ user[1] }} conversations • {{ user[2] }} messages
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Onglet Performance -->
+            <div class="tab-pane fade" id="performance" role="tabpanel">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="chart-container">
+                            <h5 class="chart-title"><i class="fas fa-clock me-2"></i>Temps de réponse par heure (dernières 24h)</h5>
+                            <canvas id="performanceChart" height="80"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Afficher la date actuelle
+        document.getElementById('current-date').textContent = new Date().toLocaleDateString('fr-FR', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+
+        // Configuration des couleurs
+        const colors = {
+            primary: '#667eea',
+            secondary: '#764ba2',
+            success: '#28a745',
+            warning: '#ffc107',
+            danger: '#dc3545',
+            info: '#17a2b8'
+        };
+
+        // Graphique des messages quotidiens
+        const dailyCtx = document.getElementById('dailyMessagesChart').getContext('2d');
+        new Chart(dailyCtx, {
+            type: 'line',
+            data: {
+                labels: [{% for day in daily_messages %}'{{ day[0] }}'{{ ',' if not loop.last }}{% endfor %}],
+                datasets: [{
+                    label: 'Messages',
+                    data: [{% for day in daily_messages %}{{ day[1] }}{{ ',' if not loop.last }}{% endfor %}],
+                    borderColor: colors.primary,
+                    backgroundColor: colors.primary + '20',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Graphique des intentions
+        const intentsCtx = document.getElementById('intentsChart').getContext('2d');
+        new Chart(intentsCtx, {
+            type: 'bar',
+            data: {
+                labels: [{% for intent in intent_analysis %}'{{ intent[0] }}'{{ ',' if not loop.last }}{% endfor %}],
+                datasets: [{
+                    label: 'Occurrences',
+                    data: [{% for intent in intent_analysis %}{{ intent[1] }}{{ ',' if not loop.last }}{% endfor %}],
+                    backgroundColor: colors.primary,
+                    borderRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Graphique des utilisateurs actifs
+        const usersCtx = document.getElementById('topUsersChart').getContext('2d');
+        new Chart(usersCtx, {
+            type: 'bar',
+            data: {
+                labels: [{% for user in top_users %}'{{ user[0] }}'{{ ',' if not loop.last }}{% endfor %}],
+                datasets: [{
+                    label: 'Messages',
+                    data: [{% for user in top_users %}{{ user[2] }}{{ ',' if not loop.last }}{% endfor %}],
+                    backgroundColor: colors.success,
+                    borderRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                indexAxis: 'y',
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+
+        // Graphique des conversations par jour de la semaine
+        const weeklyCtx = document.getElementById('weeklyConversationsChart').getContext('2d');
+        new Chart(weeklyCtx, {
+            type: 'doughnut',
+            data: {
+                labels: [{% for day in conversations_by_day %}'{{ day[0] }}'{{ ',' if not loop.last }}{% endfor %}],
+                datasets: [{
+                    data: [{% for day in conversations_by_day %}{{ day[1] }}{{ ',' if not loop.last }}{% endfor %}],
+                    backgroundColor: [
+                        colors.primary, colors.secondary, colors.success, 
+                        colors.warning, colors.danger, colors.info, '#6f42c1'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+
+        // Graphique de performance
+        const performanceCtx = document.getElementById('performanceChart').getContext('2d');
+        new Chart(performanceCtx, {
+            type: 'line',
+            data: {
+                labels: [{% for hour in hourly_performance %}'{{ hour[0] }}h'{{ ',' if not loop.last }}{% endfor %}],
+                datasets: [{
+                    label: 'Temps de réponse (ms)',
+                    data: [{% for hour in hourly_performance %}{{ hour[1] }}{{ ',' if not loop.last }}{% endfor %}],
+                    borderColor: colors.warning,
+                    backgroundColor: colors.warning + '20',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Temps (ms)'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

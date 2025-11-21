@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversations - S2M admin</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            padding: 30px;
+            position: relative;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #e74c3c, #f39c12, #2ecc71, #3498db);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .filters {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            color: #555;
+            font-size: 0.9rem;
+        }
+
+        .filter-group input, .filter-group select {
+            padding: 10px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .filter-group input:focus, .filter-group select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .conversations-table {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table thead {
+            background: linear-gradient(135deg, #34495e, #2c3e50);
+            color: white;
+        }
+
+        .table th {
+            padding: 20px 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .table td {
+            padding: 18px 15px;
+            border-bottom: 1px solid #e9ecef;
+            vertical-align: middle;
+        }
+
+        .table tbody tr {
+            transition: all 0.3s ease;
+        }
+
+        .table tbody tr:hover {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            transform: scale(1.01);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-active {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+        }
+
+        .status-inactive {
+            background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+            color: white;
+        }
+
+        .status-ended {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+        }
+
+        .user-id {
+            font-family: 'Courier New', monospace;
+            background: #e9ecef;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
+        .message-count {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .date-time {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 0.8rem;
+            border-radius: 15px;
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #17a2b8, #138496);
+            color: white;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 30px;
+            gap: 10px;
+        }
+
+        .pagination a, .pagination span {
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 8px;
+            color: #555;
+            transition: all 0.3s ease;
+        }
+
+        .pagination a:hover {
+            background: #3498db;
+            color: white;
+        }
+
+        .pagination .current {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            font-weight: 600;
+        }
+
+        .pagination .disabled {
+            color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .stats-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #fff, #f8f9fa);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        @media (max-width: 768px) {
+            .nav-buttons {
+                justify-content: center;
+            }
+
+            .filters {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .table-container {
+                overflow-x: auto;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .stats-summary {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .refresh-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            border: none;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .refresh-btn:hover {
+            transform: scale(1.1) rotate(180deg);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>
+                <i class="fas fa-comments"></i>
+                Gestion des Conversations
+            </h1>
+            <div class="nav-buttons">
+                <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+                    <i class="fas fa-home"></i> Tableau de bord
+                </a>
+                <a href="{{ url_for('analytics') }}" class="btn btn-secondary">
+                    <i class="fas fa-chart-bar"></i> Analytics
+                </a>
+                <a href="{{ url_for('banking_overview') }}" class="btn btn-secondary">
+                    <i class="fas fa-university"></i> Banking
+                </a>
+                <a href="{{ url_for('configuration') }}" class="btn btn-secondary">
+                    <i class="fas fa-cog"></i> Configuration
+                </a>
+                <a href="{{ url_for('logout') }}" class="btn btn-primary">
+                    <i class="fas fa-sign-out-alt"></i> Déconnexion
+                </a>
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- Statistiques rapides -->
+            <div class="stats-summary">
+                <div class="stat-card">
+                    <div class="stat-number">{{ total }}</div>
+                    <div class="stat-label">Total Conversations</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">
+                        {{ conversations|selectattr('4', 'equalto', 'active')|list|length if conversations else 0 }}
+                    </div>
+                    <div class="stat-label">Conversations Actives</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ page }}</div>
+                    <div class="stat-label">Page Actuelle</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ ((total - 1) // per_page) + 1 if total > 0 else 0 }}</div>
+                    <div class="stat-label">Total Pages</div>
+                </div>
+            </div>
+
+            <!-- Filtres -->
+            <div class="filters">
+                <div class="filter-group">
+                    <label for="status-filter">Statut</label>
+                    <select id="status-filter">
+                        <option value="">Tous</option>
+                        <option value="active">Actif</option>
+                        <option value="inactive">Inactif</option>
+                        <option value="ended">Terminé</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="user-filter">ID Utilisateur</label>
+                    <input type="text" id="user-filter" placeholder="Rechercher par ID...">
+                </div>
+                <div class="filter-group">
+                    <label for="date-filter">Date</label>
+                    <input type="date" id="date-filter">
+                </div>
+                <button class="btn btn-primary" onclick="applyFilters()">
+                    <i class="fas fa-filter"></i> Filtrer
+                </button>
+            </div>
+
+            <!-- Table des conversations -->
+            <div class="conversations-table">
+                {% if conversations %}
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th><i class="fas fa-hashtag"></i> ID</th>
+                                <th><i class="fas fa-user"></i> Utilisateur</th>
+                                <th><i class="fas fa-comments"></i> Messages</th>
+                                <th><i class="fas fa-calendar"></i> Créée le</th>
+                                <th><i class="fas fa-clock"></i> Dernière activité</th>
+                                <th><i class="fas fa-info-circle"></i> Statut</th>
+                                <th><i class="fas fa-tools"></i> Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for conversation in conversations %}
+                            <tr data-conversation-id="{{ conversation[0] }}">
+                                <td><strong>#{{ conversation[0] }}</strong></td>
+                                <td>
+                                    <span class="user-id">{{ conversation[1] if conversation[1] else 'Anonyme' }}</span>
+                                </td>
+                                <td>
+                                    <span class="message-count">{{ conversation[2] }}</span>
+                                </td>
+                                <td class="date-time">
+                                    {{ conversation[3][:16] if conversation[3] else 'N/A' }}
+                                </td>
+                                <td class="date-time">
+                                    {{ conversation[4][:16] if conversation[4] else 'N/A' }}
+                                </td>
+                                <td>
+                                    <span class="status-badge status-{{ conversation[5] if conversation[5] else 'inactive' }}">
+                                        {{ conversation[5] if conversation[5] else 'inactif' }}
+                                    </span>
+                                </td>
+                                <td class="actions">
+                                    <a href="{{ url_for('conversation_detail', conv_id=conversation[0]) }}" 
+                                       class="btn btn-sm btn-info">
+                                        <i class="fas fa-eye"></i> Voir
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-comments"></i>
+                    <h3>Aucune conversation trouvée</h3>
+                    <p>Il n'y a actuellement aucune conversation à afficher.</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Pagination -->
+            {% if total > per_page %}
+            <div class="pagination">
+                {% if page > 1 %}
+                    <a href="{{ url_for('conversations', page=page-1) }}">
+                        <i class="fas fa-chevron-left"></i> Précédent
+                    </a>
+                {% else %}
+                    <span class="disabled">
+                        <i class="fas fa-chevron-left"></i> Précédent
+                    </span>
+                {% endif %}
+
+                {% for p in range(max(1, page-2), min(((total-1)//per_page)+2, page+3)) %}
+                    {% if p == page %}
+                        <span class="current">{{ p }}</span>
+                    {% else %}
+                        <a href="{{ url_for('conversations', page=p) }}">{{ p }}</a>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page < ((total-1)//per_page)+1 %}
+                    <a href="{{ url_for('conversations', page=page+1) }}">
+                        Suivant <i class="fas fa-chevron-right"></i>
+                    </a>
+                {% else %}
+                    <span class="disabled">
+                        Suivant <i class="fas fa-chevron-right"></i>
+                    </span>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Bouton de rafraîchissement -->
+    <button class="refresh-btn" onclick="location.reload()">
+        <i class="fas fa-sync-alt"></i>
+    </button>
+
+    <script>
+        // Auto-refresh toutes les 30 secondes
+        setInterval(() => {
+            const refreshIndicator = document.querySelector('.refresh-btn i');
+            refreshIndicator.style.animation = 'spin 1s linear infinite';
+            
+            setTimeout(() => {
+                location.reload();
+            }, 1000);
+        }, 30000);
+
+        // Animation pour le spin
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Fonction de filtrage (côté client pour une réponse rapide)
+        function applyFilters() {
+            const statusFilter = document.getElementById('status-filter').value.toLowerCase();
+            const userFilter = document.getElementById('user-filter').value.toLowerCase();
+            const dateFilter = document.getElementById('date-filter').value;
+            
+            const rows = document.querySelectorAll('tbody tr');
+            
+            rows.forEach(row => {
+                const status = row.querySelector('.status-badge').textContent.toLowerCase();
+                const userId = row.querySelector('.user-id').textContent.toLowerCase();
+                const dateCreated = row.querySelector('.date-time').textContent;
+                
+                let showRow = true;
+                
+                if (statusFilter && !status.includes(statusFilter)) {
+                    showRow = false;
+                }
+                
+                if (userFilter && !userId.includes(userFilter)) {
+                    showRow = false;
+                }
+                
+                if (dateFilter && !dateCreated.includes(dateFilter)) {
+                    showRow = false;
+                }
+                
+                row.style.display = showRow ? '' : 'none';
+            });
+        }
+
+        // Highlight des nouvelles conversations (effet visuel)
+        document.addEventListener('DOMContentLoaded', function() {
+            const rows = document.querySelectorAll('tbody tr');
+            rows.forEach((row, index) => {
+                setTimeout(() => {
+                    row.style.opacity = '0';
+                    row.style.transform = 'translateY(20px)';
+                    row.style.transition = 'all 0.5s ease';
+                    
+                    setTimeout(() => {
+                        row.style.opacity = '1';
+                        row.style.transform = 'translateY(0)';
+                    }, 50);
+                }, index * 100);
+            });
+        });
+
+        // Gestion des raccourcis clavier
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'r') {
+                e.preventDefault();
+                location.reload();
+            }
+            
+            if (e.key === 'Escape') {
+                document.getElementById('status-filter').value = '';
+                document.getElementById('user-filter').value = '';
+                document.getElementById('date-filter').value = '';
+                applyFilters();
+            }
+        });
+    </script>
+</body>
+</html>
